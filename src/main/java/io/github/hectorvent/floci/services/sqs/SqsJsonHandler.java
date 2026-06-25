@@ -195,7 +195,8 @@ public class SqsJsonHandler {
     private Response handleSendMessage(JsonNode request, String region) {
         String queueUrl = request.path("QueueUrl").asText(null);
         String messageBody = request.path("MessageBody").asText(null);
-        int delaySeconds = request.path("DelaySeconds").asInt(0);
+        JsonNode delayNode = request.path("DelaySeconds");
+        Integer delaySeconds = delayNode.isMissingNode() || delayNode.isNull() ? null : delayNode.asInt();
         String messageGroupId = request.path("MessageGroupId").asText(null);
         String messageDeduplicationId = request.path("MessageDeduplicationId").asText(null);
 
@@ -347,7 +348,7 @@ public class SqsJsonHandler {
         ArrayNode successful = objectMapper.createArrayNode();
         ArrayNode failed = objectMapper.createArrayNode();
 
-        record ParsedEntry(String id, String body, int delay, String groupId, String dedupId,
+        record ParsedEntry(String id, String body, Integer delay, String groupId, String dedupId,
                            Map<String, MessageAttributeValue> attributes, String awsTraceHeader) {}
 
         List<ParsedEntry> parsedEntries = new ArrayList<>();
@@ -356,7 +357,8 @@ public class SqsJsonHandler {
             for (JsonNode entry : entries) {
                 String id = entry.path("Id").asText();
                 String messageBody = entry.path("MessageBody").asText(null);
-                int delaySeconds = entry.path("DelaySeconds").asInt(0);
+                JsonNode entryDelayNode = entry.path("DelaySeconds");
+                Integer delaySeconds = entryDelayNode.isMissingNode() || entryDelayNode.isNull() ? null : entryDelayNode.asInt();
                 String messageGroupId = entry.path("MessageGroupId").asText(null);
                 String messageDeduplicationId = entry.path("MessageDeduplicationId").asText(null);
 
